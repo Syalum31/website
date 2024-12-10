@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Potensi Tsunami</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0d3b66;
+      color: white;
+    }
+
+    header {
+      background: #1b4d89;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .form-container {
+      background: #2a628f;
+      margin: 20px auto;
+      max-width: 500px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+    }
+
+    input {
+      background: #f1f1f1;
+    }
+
+    button {
+      background: #f4a261;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e76f51;
+    }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      max-width: 90%;
+    }
+
+    .animation-container {
+      margin-top: 30px;
+      position: relative;
+      height: 200px;
+      background: linear-gradient(to bottom, #0077b6, #023e8a);
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .wave {
+      position: absolute;
+      width: 200%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0.7;
+      top: 0;
+      left: -50%;
+      animation: wave-animation 5s linear infinite;
+    }
+
+    .wave:nth-child(2) {
+      animation-delay: 2.5s;
+      opacity: 0.4;
+    }
+
+    @keyframes wave-animation {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kalkulator Potensi Bencana Tsunami</h1>
+  </header>
+  <main>
+    <div class="form-container">
+      <form id="tsunamiForm">
+        <label for="depth">Kedalaman Laut (m) [range 50 - 11.000]:</label>
+        <input type="number" id="depth" placeholder="Masukkan kedalaman laut (m)" required>
+
+        <label for="waveSpeed">Kecepatan Gelombang (m/s) [range 100 - 1.000]:</label>
+        <input type="number" id="waveSpeed" placeholder="Masukkan kecepatan gelombang (m/s)" required>
+
+        <label for="wavelength">Panjang Gelombang (m) [range 10.000 - 500.000]:</label>
+        <input type="number" id="wavelength" placeholder="Masukkan panjang gelombang (m)" required>
+
+        <button type="submit">Hitung</button>
+      </form>
+    </div>
+
+    <canvas id="tsunamiChart"></canvas>
+
+    <div class="animation-container">
+      <div class="wave"></div>
+      <div class="wave"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const form = document.getElementById('tsunamiForm');
+    const ctx = document.getElementById('tsunamiChart').getContext('2d');
+    let tsunamiChart;
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // Ambil nilai dari input
+      const depth = parseFloat(document.getElementById('depth').value);
+      const waveSpeed = parseFloat(document.getElementById('waveSpeed').value);
+      const wavelength = parseFloat(document.getElementById('wavelength').value);
+
+      if (depth > 0 && waveSpeed > 0 && wavelength > 0) {
+        // Energi tsunami menggunakan metode integrasi diferensial
+        const g = 9.8; // Gravitasi (m/s^2)
+        const energy = (1 / 2) * g * depth * Math.pow(waveSpeed, 2) * wavelength;
+
+        // Visualisasi grafik gelombang tsunami
+        const labels = Array.from({ length: 100 }, (_, i) => i + 1);
+        const waveHeights = labels.map(x => 
+          0.5 * Math.sin((2 * Math.PI * x) / wavelength) * waveSpeed
+        );
+
+        if (tsunamiChart) {
+          tsunamiChart.destroy();
+        }
+
+        tsunamiChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Ketinggian Gelombang Tsunami (m)',
+              data: waveHeights,
+              borderColor: '#f4a261',
+              backgroundColor: 'rgba(244, 162, 97, 0.2)',
+              borderWidth: 2,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Panjang Gelombang (m)'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Ketinggian Gelombang (m)'
+                }
+              }
+            }
+          }
+        });
+
+        alert(`Energi Tsunami: ${energy.toFixed(2)} Joule`);
+      } else {
+        alert("Masukkan nilai yang valid!");
+      }
+    });
+  </script>
+</body>
+</html>

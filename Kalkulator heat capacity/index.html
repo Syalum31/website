@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Heat Capacity Radiasi Matahari di Laut</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #1e2a47;
+      color: white;
+    }
+
+    header {
+      background: #3a4f83;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .form-container {
+      background: #34495e;
+      margin: 20px auto;
+      max-width: 500px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+    }
+
+    input {
+      background: #ecf0f1;
+    }
+
+    button {
+      background: #e67e22;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #d35400;
+    }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kalkulator Heat Capacity Radiasi Matahari di Laut</h1>
+  </header>
+  <main>
+    <div class="form-container">
+      <form id="heatCapacityForm">
+        <label for="area">Luas Permukaan Laut (m²):</label>
+        <input type="number" id="area" placeholder="Masukkan luas permukaan laut (m²)" required>
+
+        <label for="solarIrradiance">Daya Radiasi Matahari (W/m²) [range 1000 W/m² - 1361 W/m²]:</label>
+        <input type="number" id="solarIrradiance" placeholder="Masukkan daya radiasi matahari (W/m²)" value="1361" required>
+
+        <label for="waterMass">Massa Air Laut (kg):</label>
+        <input type="number" id="waterMass" placeholder="Masukkan massa air laut (kg)" required>
+
+        <label for="temperatureChange">Perubahan Suhu (°C) [range 0°C - 5°C]:</label>
+        <input type="number" id="temperatureChange" placeholder="Masukkan perubahan suhu (°C)" required>
+
+        <button type="submit">Hitung Heat Capacity</button>
+      </form>
+    </div>
+
+    <canvas id="calorGraph"></canvas>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.getElementById('heatCapacityForm').addEventListener('submit', function(e) {
+      e.preventDefault(); // Mencegah halaman memuat ulang
+
+      // Ambil input nilai
+      const area = parseFloat(document.getElementById('area').value);
+      const solarIrradiance = parseFloat(document.getElementById('solarIrradiance').value);
+      const waterMass = parseFloat(document.getElementById('waterMass').value);
+      const temperatureChange = parseFloat(document.getElementById('temperatureChange').value);
+
+      // Kapasitas panas spesifik air laut
+      const c = 4000; // J/(kg·K)
+
+      // Hitung heat capacity
+      const Q = waterMass * c * temperatureChange;
+
+      // Kalor yang diterima dari radiasi matahari
+      const heatFromSun = area * solarIrradiance;
+
+      // Menampilkan hasil perhitungan
+      alert(`Heat Capacity: ${Q.toFixed(2)} Joule\nRadiasi Matahari yang Diterima: ${heatFromSun.toFixed(2)} Joule`);
+
+      // Menghitung kalor meluap (kalor laten penguapan)
+      const latentHeat = 2260 * 1000; // Laten panas penguapan (J/kg)
+      const vaporizedMass = waterMass * (Q / (latentHeat * 1000));
+
+      alert(`Massa Air yang Menguap: ${vaporizedMass.toFixed(2)} kg`);
+
+      // Visualisasi grafik Kalor Meluap
+      const labels = Array.from({ length: 100 }, (_, i) => i + 1);
+      const calorData = labels.map(x => 
+        0.5 * Math.sin((2 * Math.PI * x) / 100) * heatFromSun
+      );
+
+      const ctx = document.getElementById('calorGraph').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Kalor yang Diterima oleh Laut (Joule)',
+            data: calorData,
+            borderColor: '#e67e22',
+            backgroundColor: 'rgba(230, 126, 34, 0.2)',
+            borderWidth: 2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Waktu (detik)'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Kalor (Joule)'
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
